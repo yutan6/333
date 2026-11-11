@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MobilityGo 微移 Go - 智慧共享微型出行 App 原型</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#00E599', // Electric Green Accent
+              dark: '#00B377',
+              cyan: '#00D8F6',
+              bg: '#0F172A',
+              card: '#1E293B',
+              surface: '#334155'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '"Noto Sans TC"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom CSS for Smooth Animations & Glassmorphism */
+    .glass-card {
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .scanner-line {
+      animation: scan 2s linear infinite;
+    }
+    @keyframes scan {
+      0% { top: 10%; opacity: 0.8; }
+      50% { opacity: 1; }
+      100% { top: 85%; opacity: 0.8; }
+    }
+    .pulse-ring {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .5; transform: scale(1.15); }
+    }
+    /* Hide scrollbar */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-0 sm:p-4 selection:bg-brand selection:text-slate-900 font-sans">
+
+  <!-- Main Mobile Frame Container -->
+  <div class="relative w-full max-w-[412px] h-[100vh] sm:h-[844px] bg-slate-900 sm:rounded-[48px] border-0 sm:border-[10px] border-slate-800 shadow-2xl overflow-hidden flex flex-col justify-between select-none">
+    
+    <!-- iPhone Style Dynamic Island / Notch -->
+    <div class="absolute top-0 left-0 right-0 h-11 bg-transparent z-50 flex justify-between items-center px-7 pt-1 pointer-events-none">
+      <span id="system-time" class="text-xs font-bold text-slate-100 tracking-tight">09:41</span>
+      <!-- Dynamic Island Capsule -->
+      <div class="w-24 h-5 bg-black rounded-full flex items-center justify-end px-2 gap-1.5">
+        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+        <div class="w-1.5 h-1.5 rounded-full bg-slate-700"></div>
+      </div>
+      <div class="flex items-center gap-1.5 text-xs text-slate-200">
+        <i class="fa-solid fa-signal text-[10px]"></i>
+        <i class="fa-solid fa-wifi text-[10px]"></i>
+        <i class="fa-solid fa-battery-three-quarters text-[11px]"></i>
+      </div>
+    </div>
+
+    <!-- APP HEADER BAR -->
+    <div class="relative z-40 pt-12 px-5 pb-3 flex items-center justify-between bg-slate-900/60 backdrop-blur-md border-b border-slate-800/60">
+      <button onclick="toggleDrawer(true)" class="w-10 h-10 rounded-full bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-200 hover:text-brand transition active:scale-95">
+        <i class="fa-solid fa-bars-staggered"></i>
+      </button>
+      <div class="flex items-center gap-2" onclick="switchScreen('screen-map')">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-brand to-brand-cyan flex items-center justify-center text-slate-950 font-black text-sm shadow-lg shadow-brand/20">
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+        <span class="font-extrabold text-lg tracking-wide text-white">Mobility<span class="text-brand">Go</span></span>
+      </div>
+      <button onclick="switchScreen('screen-map')" class="w-10 h-10 rounded-full bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-200 hover:text-brand transition active:scale-95 relative">
+        <i class="fa-solid fa-bell"></i>
+        <span class="absolute top-2 right-2 w-2 h-2 bg-brand rounded-full"></span>
+      </button>
+    </div>
+
+    <!-- MAIN SCREEN AREA (SLIDING SCREENS) -->
+    <div class="relative flex-1 overflow-hidden">
+
+      <!-- ================= 1. MAP VIEW SCREEN (HOME) ================= -->
+      <div id="screen-map" class="screen-view absolute inset-0 flex flex-col transition-all duration-300">
+        <!-- Simulated Interactive Map Background -->
+        <div class="absolute inset-0 bg-slate-950 overflow-hidden">
+          <!-- Vector Map Grid lines -->
+          <svg class="w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            <defs>
+              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#334155" stroke-width="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+            <!-- Simulated Roads -->
+            <path d="M-50 150 Q 200 180 450 120" stroke="#475569" stroke-width="24" fill="none" opacity="0.6" />
+            <path d="M120 -50 L 180 900" stroke="#475569" stroke-width="32" fill="none" opacity="0.6" />
+            <path d="M-50 480 Q 220 400 450 550" stroke="#334155" stroke-width="18" fill="none" opacity="0.8" />
+          </svg>
+
+          <!-- Current User Location Marker -->
+          <div class="absolute top-[48%] left-[46%] -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center">
+            <div class="w-12 h-12 rounded-full bg-brand/20 pulse-ring flex items-center justify-center">
+              <div class="w-5 h-5 rounded-full bg-brand border-2 border-slate-950 shadow-lg shadow-brand"></div>
+            </div>
+          </div>
+
+          <!-- Scooter Pin 1 (Selected default) -->
+          <button onclick="selectVehicle('E-Scooter #809', '88%', '28 km', '$5/分', '高華樓站 (校區中心)')" class="absolute top-[32%] left-[28%] z-20 group transform hover:scale-110 transition">
+            <div class="bg-slate-900 border-2 border-brand text-brand px-2.5 py-1 rounded-full shadow-lg text-xs font-bold flex items-center gap-1.5">
+              <i class="fa-solid fa-bolt text-brand"></i> 88%
+            </div>
+            <div class="w-2 h-2 bg-brand rotate-45 mx-auto -mt-1"></div>
+          </button>
+
+          <!-- Scooter Pin 2 -->
+          <button onclick="selectVehicle('E-Scooter #412', '95%', '32 km', '$5/分', '工程館 A 區')" class="absolute top-[42%] left-[72%] z-20 group transform hover:scale-110 transition">
+            <div class="bg-slate-900 border border-slate-700 text-slate-200 hover:border-brand px-2.5 py-1 rounded-full shadow-lg text-xs font-bold flex items-center gap-1.5">
+              <i class="fa-solid fa-bolt text-emerald-400"></i> 95%
+            </div>
+          </button>
+
+          <!-- Scooter Pin 3 -->
+          <button onclick="selectVehicle('E-Scooter #105', '45%', '14 km', '$4/分', '圖書館後方站')" class="absolute top-[62%] left-[25%] z-20 group transform hover:scale-110 transition">
+            <div class="bg-slate-900 border border-slate-700 text-slate-300 hover:border-brand px-2 py-1 rounded-full shadow-lg text-xs font-bold flex items-center gap-1.5">
+              <i class="fa-solid fa-bolt text-amber-400"></i> 45%
+            </div>
+          </button>
+        </div>
+
+        <!-- Top Floating Search Bar -->
+        <div class="relative z-30 p-4">
+          <div class="glass-card rounded-2xl p-2.5 flex items-center gap-3 shadow-xl border border-slate-700/50">
+            <i class="fa-solid fa-magnifying-glass text-slate-400 pl-2"></i>
+            <input type="text" id="search-input" oninput="handleSearchInput(this.value)" onkeydown="if(event.key==='Enter') executeSearch(this.value)" placeholder="搜尋目的地或站點 (例如: 台北車站, 圖書館...)" class="bg-transparent w-full text-sm text-slate-100 focus:outline-none placeholder:text-slate-500">
+            <button onclick="executeSearch(document.getElementById('search-input').value)" class="w-8 h-8 rounded-xl bg-brand flex items-center justify-center text-slate-950 hover:bg-brand-dark transition font-bold">
+              <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+          </div>
+
+          <!-- Dynamic Search Dropdown Results -->
+          <div id="search-dropdown" class="hidden glass-card rounded-2xl mt-2 p-2 border border-slate-700/80 shadow-2xl space-y-1">
+            <!-- Results will be dynamically injected here -->
+          </div>
+
+          <!-- Location Toast Notification -->
+          <div id="location-toast" class="hidden mt-2 bg-brand/20 border border-brand/50 text-brand text-xs font-bold px-3 py-2 rounded-xl flex items-center justify-between animate-bounce">
+            <span id="toast-text" class="flex items-center gap-1.5"><i class="fa-solid fa-location-crosshairs"></i> 已重新定位至：台北車站</span>
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+        </div>
+
+        <!-- Bottom Vehicle Card & Action Modal -->
+        <div class="mt-auto relative z-30 p-4 pb-6">
+          <div class="glass-card rounded-3xl p-5 border border-slate-700/80 shadow-2xl">
+            <!-- Header info -->
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs px-2 py-0.5 rounded bg-brand/20 text-brand font-bold uppercase tracking-wider">電動機車</span>
+                  <h3 id="v-name" class="font-extrabold text-lg text-white">E-Scooter #809</h3>
+                </div>
+                <p id="v-location" class="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                  <i class="fa-solid fa-location-dot text-brand"></i> 距離您 80 公尺 (高華樓站)
+                </p>
+              </div>
+              <button class="w-9 h-9 rounded-full bg-slate-800 text-slate-400 hover:text-rose-400 flex items-center justify-center transition">
+                <i class="fa-regular fa-heart"></i>
+              </button>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-3 gap-2 bg-slate-900/60 rounded-2xl p-3 border border-slate-800/80 mb-4">
+              <div class="text-center border-r border-slate-800">
+                <span class="text-[10px] text-slate-400 block mb-0.5">剩餘電量</span>
+                <span id="v-battery" class="text-sm font-extrabold text-brand flex items-center justify-center gap-1">
+                  <i class="fa-solid fa-bolt text-xs"></i> 88%
+                </span>
+              </div>
+              <div class="text-center border-r border-slate-800">
+                <span class="text-[10px] text-slate-400 block mb-0.5">預估續航</span>
+                <span id="v-range" class="text-sm font-bold text-slate-200">28 km</span>
+              </div>
+              <div class="text-center">
+                <span class="text-[10px] text-slate-400 block mb-0.5">費率計算</span>
+                <span id="v-price" class="text-sm font-bold text-slate-200">$5 / 分</span>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-3">
+              <button onclick="ringVehicle()" class="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 text-slate-200 hover:text-brand flex items-center justify-center active:scale-95 transition" title="響鈴尋車">
+                <i class="fa-solid fa-volume-high"></i>
+              </button>
+              <button onclick="switchScreen('screen-scan')" class="flex-1 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-brand to-brand-cyan text-slate-950 font-extrabold text-base shadow-lg shadow-brand/20 flex items-center justify-center gap-2 hover:brightness-110 active:scale-98 transition">
+                <i class="fa-solid fa-qrcode text-lg"></i>
+                <span>掃碼解鎖騎乘</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 2. QR SCANNER SCREEN ================= -->
+      <div id="screen-scan" class="screen-view absolute inset-0 hidden bg-slate-950 flex flex-col justify-between p-6 transition-all duration-300">
+        <!-- Top Nav -->
+        <div class="flex items-center justify-between z-20">
+          <button onclick="switchScreen('screen-map')" class="w-10 h-10 rounded-full bg-slate-900/80 border border-slate-800 text-slate-300 flex items-center justify-center">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <span class="font-bold text-sm text-slate-200">對準車輛 QR Code</span>
+          <button onclick="toggleFlash()" id="flash-btn" class="w-10 h-10 rounded-full bg-slate-900/80 border border-slate-800 text-slate-300 flex items-center justify-center">
+            <i class="fa-solid fa-bolt"></i>
+          </button>
+        </div>
+
+        <!-- Camera Viewfinder Frame -->
+        <div class="relative w-64 h-64 mx-auto my-auto rounded-3xl border-2 border-brand/50 overflow-hidden flex items-center justify-center shadow-[0_0_50px_rgba(0,229,153,0.15)]">
+          <!-- Animated Laser Line -->
+          <div class="scanner-line absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-brand to-transparent shadow-[0_0_15px_#00E599]"></div>
+          
+          <!-- Viewfinder Corner Markers -->
+          <div class="absolute top-3 left-3 w-6 h-6 border-t-4 border-l-4 border-brand"></div>
+          <div class="absolute top-3 right-3 w-6 h-6 border-t-4 border-r-4 border-brand"></div>
+          <div class="absolute bottom-3 left-3 w-6 h-6 border-b-4 border-l-4 border-brand"></div>
+          <div class="absolute bottom-3 right-3 w-6 h-6 border-b-4 border-r-4 border-brand"></div>
+
+          <!-- Dummy QR Image inside viewfinder -->
+          <div class="opacity-40 text-center">
+            <i class="fa-solid fa-qrcode text-8xl text-slate-400"></i>
+          </div>
+        </div>
+
+        <!-- Bottom Controls -->
+        <div class="z-20 text-center space-y-4">
+          <p class="text-xs text-slate-400">無法對焦？輸入車輛編號 <button onclick="simulateUnlock()" class="text-brand underline font-bold">點此解鎖</button></p>
+          <button onclick="simulateUnlock()" class="w-full py-4 rounded-2xl bg-brand text-slate-950 font-extrabold text-base shadow-lg shadow-brand/20 active:scale-95 transition">
+            模擬成功解鎖騎乘
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= 3. ACTIVE RIDING SCREEN ================= -->
+      <div id="screen-ride" class="screen-view absolute inset-0 hidden bg-slate-950 flex flex-col justify-between p-5 transition-all duration-300">
+        <!-- Status Header -->
+        <div class="flex items-center justify-between z-10 pt-2">
+          <div class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-full">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span class="text-xs font-bold text-emerald-400">騎乘行進中</span>
+          </div>
+          <span class="text-xs text-slate-400 font-mono">車牌: E-809</span>
+        </div>
+
+        <!-- Speed & Main HUD Display -->
+        <div class="my-auto text-center space-y-6">
+          <!-- Speedometer circle -->
+          <div class="relative w-56 h-56 mx-auto flex flex-col items-center justify-center rounded-full border-4 border-slate-800 bg-slate-900/80 shadow-[0_0_60px_rgba(0,229,153,0.1)]">
+            <svg class="absolute inset-0 w-full h-full -rotate-90">
+              <circle cx="112" cy="112" r="100" stroke="#1e293b" stroke-width="8" fill="none" />
+              <circle cx="112" cy="112" r="100" stroke="#00E599" stroke-width="8" fill="none" stroke-dasharray="628" stroke-dashoffset="400" stroke-linecap="round" />
+            </svg>
+            <span id="ride-speed" class="text-6xl font-black text-white font-mono tracking-tighter">18</span>
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">KM / H</span>
+          </div>
+
+          <!-- Trip Real-time Dashboard Stats -->
+          <div class="grid grid-cols-3 gap-3 bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
+            <div>
+              <span class="text-[10px] text-slate-400 block mb-1">騎乘時間</span>
+              <span id="ride-timer" class="text-lg font-extrabold text-white font-mono">00:05:23</span>
+            </div>
+            <div class="border-x border-slate-800">
+              <span class="text-[10px] text-slate-400 block mb-1">已騎乘距離</span>
+              <span id="ride-distance" class="text-lg font-extrabold text-brand font-mono">1.2 km</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block mb-1">預估費用</span>
+              <span id="ride-cost" class="text-lg font-extrabold text-white font-mono">$25</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Emergency & Finish Trip Control Buttons -->
+        <div class="space-y-3 pt-2">
+          <div class="flex gap-3">
+            <button onclick="togglePauseRide()" id="pause-btn" class="flex-1 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-bold text-sm flex items-center justify-center gap-2">
+              <i class="fa-solid fa-pause text-amber-400"></i>
+              <span>臨時鎖車</span>
+            </button>
+            <button onclick="triggerEmergency()" class="py-3 px-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 font-bold text-sm flex items-center justify-center gap-1">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <span>求助</span>
+            </button>
+          </div>
+          <button onclick="finishRide()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-500 to-red-600 text-white font-extrabold text-base shadow-lg shadow-rose-900/30 flex items-center justify-center gap-2 active:scale-98 transition">
+            <i class="fa-solid fa-flag-checkered"></i>
+            <span>結束騎乘並還車</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= 4. TRIP SUMMARY & PAYMENT SCREEN ================= -->
+      <div id="screen-summary" class="screen-view absolute inset-0 hidden bg-slate-950 flex flex-col justify-between p-6 transition-all duration-300">
+        <div class="text-center pt-4">
+          <div class="w-16 h-16 rounded-full bg-brand/20 border-2 border-brand text-brand flex items-center justify-center mx-auto mb-3 shadow-[0_0_30px_rgba(0,229,153,0.3)]">
+            <i class="fa-solid fa-check text-2xl"></i>
+          </div>
+          <h2 class="text-2xl font-black text-white">騎乘完成！</h2>
+          <p class="text-xs text-slate-400 mt-1">扣款成功 · 感謝您維護綠色校園環境</p>
+        </div>
+
+        <!-- Stats Breakdown Card -->
+        <div class="glass-card rounded-3xl p-5 border border-slate-800 my-auto space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <span class="text-xs text-slate-400">使用車輛</span>
+            <span class="text-sm font-bold text-white">E-Scooter #809</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-slate-900/60 p-3 rounded-2xl border border-slate-800/80">
+              <span class="text-[10px] text-slate-400 block mb-0.5">總騎乘時間</span>
+              <span class="text-base font-extrabold text-slate-100">8 分鐘</span>
+            </div>
+            <div class="bg-slate-900/60 p-3 rounded-2xl border border-slate-800/80">
+              <span class="text-[10px] text-slate-400 block mb-0.5">總行駛里程</span>
+              <span class="text-base font-extrabold text-slate-100">1.8 km</span>
+            </div>
+          </div>
+
+          <!-- Carbon Reduction Benefit Badge -->
+          <div class="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-3 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <i class="fa-solid fa-leaf text-lg"></i>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-emerald-400 block">成功減少碳排放</span>
+              <span class="text-xs text-slate-300">約降耗 <strong class="text-white">0.42 kg CO₂e</strong></span>
+            </div>
+          </div>
+
+          <!-- Payment Details -->
+          <div class="pt-2">
+            <div class="flex justify-between text-xs text-slate-400 mb-1">
+              <span>基本起跳價 + 時間費</span>
+              <span>$25</span>
+            </div>
+            <div class="flex justify-between text-xs text-brand mb-2">
+              <span>學生專屬 9 折優惠</span>
+              <span>-$3</span>
+            </div>
+            <div class="flex justify-between items-center text-sm font-extrabold text-white pt-2 border-t border-slate-800">
+              <span>實付金額 (LINE Pay)</span>
+              <span class="text-xl text-brand font-mono">$22</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rating & Back to Home -->
+        <div class="space-y-4">
+          <div class="text-center">
+            <span class="text-xs text-slate-400 block mb-2">為本次騎乘體驗評分</span>
+            <div class="flex justify-center gap-2 text-amber-400 text-lg">
+              <i class="fa-solid fa-star cursor-pointer hover:scale-125 transition"></i>
+              <i class="fa-solid fa-star cursor-pointer hover:scale-125 transition"></i>
+              <i class="fa-solid fa-star cursor-pointer hover:scale-125 transition"></i>
+              <i class="fa-solid fa-star cursor-pointer hover:scale-125 transition"></i>
+              <i class="fa-solid fa-star cursor-pointer hover:scale-125 transition"></i>
+            </div>
+          </div>
+          <button onclick="switchScreen('screen-map')" class="w-full py-4 rounded-2xl bg-slate-800 border border-slate-700 text-white font-extrabold text-sm hover:bg-slate-700 active:scale-98 transition">
+            返回首頁地圖
+          </button>
+        </div>
+      </div>
+
+    </div> <!-- End Main Screen Area -->
+
+    <!-- BOTTOM TAB NAVIGATION BAR -->
+    <div class="relative z-40 bg-slate-900/90 backdrop-blur-md border-t border-slate-800 px-6 py-2.5 flex justify-around items-center">
+      <button onclick="switchScreen('screen-map')" class="flex flex-col items-center gap-1 text-brand">
+        <i class="fa-solid fa-map-location-dot text-lg"></i>
+        <span class="text-[10px] font-bold">地圖尋車</span>
+      </button>
+      <button onclick="switchScreen('screen-scan')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200">
+        <i class="fa-solid fa-qrcode text-lg"></i>
+        <span class="text-[10px] font-bold">掃碼</span>
+      </button>
+      <button onclick="toggleDrawer(true)" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200">
+        <i class="fa-solid fa-wallet text-lg"></i>
+        <span class="text-[10px] font-bold">錢包/帳號</span>
+      </button>
+    </div>
+
+    <!-- Home Indicator Bar -->
+    <div class="w-32 h-1 bg-slate-700 rounded-full mx-auto my-1"></div>
+
+    <!-- ================= SIDEBAR / USER PROFILE DRAWER ================= -->
+    <div id="user-drawer" class="absolute inset-0 z-50 bg-slate-950/80 backdrop-blur-md transition-all duration-300 opacity-0 pointer-events-none flex">
+      <!-- Drawer Content Card -->
+      <div id="drawer-card" class="w-[82%] h-full bg-slate-900 border-r border-slate-800 p-6 flex flex-col justify-between -translate-x-full transition-transform duration-300 ease-out">
+        <div>
+          <!-- Close Drawer -->
+          <div class="flex justify-between items-center mb-6">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">個人帳戶管理</span>
+            <button onclick="toggleDrawer(false)" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <!-- Profile Badge -->
+          <div class="flex items-center gap-3 mb-6 p-3 rounded-2xl bg-slate-800/60 border border-slate-700/60">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-brand to-brand-cyan text-slate-950 font-extrabold flex items-center justify-center text-lg">
+              劉
+            </div>
+            <div>
+              <h4 class="font-extrabold text-base text-white">I4B58 劉宇堂</h4>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand/10 border border-brand/30 text-[10px] font-bold text-brand mt-0.5">
+                <i class="fa-solid fa-graduation-cap"></i> 已認證學生優惠
+              </span>
+            </div>
+          </div>
+
+          <!-- Wallet Balance Box -->
+          <div class="glass-card rounded-2xl p-4 mb-6 border border-slate-700/80">
+            <span class="text-xs text-slate-400 block mb-1">微移 Wallet 餘額</span>
+            <div class="flex justify-between items-end">
+              <span class="text-2xl font-black text-white font-mono">$ 350 <span class="text-xs text-slate-400 font-normal">TWD</span></span>
+              <button class="px-3 py-1.5 rounded-xl bg-brand text-slate-950 font-bold text-xs">儲值</button>
+            </div>
+          </div>
+
+          <!-- Drawer Navigation Links -->
+          <div class="space-y-2">
+            <a href="#" class="flex items-center justify-between p-3 rounded-xl hover:bg-slate-800 text-slate-200 text-sm font-semibold transition">
+              <div class="flex items-center gap-3">
+                <i class="fa-solid fa-clock-rotate-left text-slate-400 w-5"></i>
+                <span>騎乘歷史紀錄</span>
+              </div>
+              <span class="text-xs text-slate-500">12 次</span>
+            </a>
+            <a href="#" class="flex items-center justify-between p-3 rounded-xl hover:bg-slate-800 text-slate-200 text-sm font-semibold transition">
+              <div class="flex items-center gap-3">
+                <i class="fa-solid fa-credit-card text-slate-400 w-5"></i>
+                <span>支付方式設定</span>
+              </div>
+              <span class="text-xs text-brand font-bold">LINE Pay</span>
+            </a>
+            <a href="#" class="flex items-center justify-between p-3 rounded-xl hover:bg-slate-800 text-slate-200 text-sm font-semibold transition">
+              <div class="flex items-center gap-3">
+                <i class="fa-solid fa-shield-halved text-slate-400 w-5"></i>
+                <span>騎乘平安保險</span>
+              </div>
+              <span class="text-xs text-emerald-400">已保障</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Footer Info -->
+        <div class="pt-4 border-t border-slate-800 text-center">
+          <p class="text-[11px] text-slate-500">MobilityGo App v2.4.0 · 期末專案 Prototype</p>
+        </div>
+      </div>
+
+      <!-- Backdrop overlay click to dismiss -->
+      <div onclick="toggleDrawer(false)" class="flex-1 h-full"></div>
+    </div>
+
+  </div>
+
+  <!-- JavaScript Prototype Interaction Logic -->
+  <script>
+    // Real-time Clock
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('system-time').innerText = `${hours}:${minutes}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Screen Switching Navigation
+    function switchScreen(screenId) {
+      document.querySelectorAll('.screen-view').forEach(el => {
+        el.classList.add('hidden');
+      });
+      document.getElementById(screenId).classList.remove('hidden');
+    }
+
+    // Vehicle Selection Simulation
+    function selectVehicle(name, battery, range, price, location) {
+      document.getElementById('v-name').innerText = name;
+      document.getElementById('v-battery').innerHTML = `<i class="fa-solid fa-bolt text-xs"></i> ${battery}`;
+      document.getElementById('v-range').innerText = range;
+      document.getElementById('v-price').innerText = price;
+      document.getElementById('v-location').innerHTML = `<i class="fa-solid fa-location-dot text-brand"></i> ${location}`;
+    }
+
+    // Vehicle Sound Alert Simulation
+    function ringVehicle() {
+      alert("🔊 已向車輛發送嗶嗶聲訊號，方便您快速尋車！");
+    }
+
+    // Toggle Drawer Navigation
+    function toggleDrawer(show) {
+      const drawer = document.getElementById('user-drawer');
+      const card = document.getElementById('drawer-card');
+      if (show) {
+        drawer.classList.remove('opacity-0', 'pointer-events-none');
+        card.classList.remove('-translate-x-full');
+      } else {
+        drawer.classList.add('opacity-0', 'pointer-events-none');
+        card.classList.add('-translate-x-full');
+      }
+    }
+
+    // Simulated QR Unlock & Ride Start
+    let rideInterval;
+    let secondsElapsed = 323; // starts at 00:05:23
+    let distance = 1.2;
+
+    function simulateUnlock() {
+      switchScreen('screen-ride');
+      startRideTimer();
+    }
+
+    function startRideTimer() {
+      clearInterval(rideInterval);
+      rideInterval = setInterval(() => {
+        secondsElapsed++;
+        
+        // Format Time
+        const hrs = String(Math.floor(secondsElapsed / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((secondsElapsed % 3600) / 60)).padStart(2, '0');
+        const secs = String(secondsElapsed % 60).padStart(2, '0');
+        document.getElementById('ride-timer').innerText = `${hrs}:${mins}:${secs}`;
+
+        // Simulate distance increment & speed variation
+        if (secondsElapsed % 3 === 0) {
+          distance += 0.05;
+          document.getElementById('ride-distance').innerText = `${distance.toFixed(1)} km`;
+          const randomSpeed = Math.floor(Math.random() * 6) + 16;
+          document.getElementById('ride-speed').innerText = randomSpeed;
+        }
+      }, 1000);
+    }
+
+    // Pause Ride Toggle
+    let isPaused = false;
+    function togglePauseRide() {
+      isPaused = !isPaused;
+      const btn = document.getElementById('pause-btn');
+      if (isPaused) {
+        btn.innerHTML = `<i class="fa-solid fa-play text-emerald-400"></i><span>繼續騎乘</span>`;
+        document.getElementById('ride-speed').innerText = "0";
+      } else {
+        btn.innerHTML = `<i class="fa-solid fa-pause text-amber-400"></i><span>臨時鎖車</span>`;
+      }
+    }
+
+    function triggerEmergency() {
+      alert("🆘 緊急求助訊號已傳送至校園安全中心及營運團隊！");
+    }
+
+    // End Ride & Show Summary
+    function finishRide() {
+      clearInterval(rideInterval);
+      switchScreen('screen-summary');
+    }
+
+    // Toggle Camera Flash simulation
+    let flashOn = false;
+    function toggleFlash() {
+      flashOn = !flashOn;
+      const btn = document.getElementById('flash-btn');
+      btn.style.color = flashOn ? '#00E599' : '#CBD5E1';
+    }
+
+    // Dynamic Search & Destination Filtering
+    const presetLocations = [
+      { name: "台北車站", area: "中正區", vehicle: "E-Scooter #902", battery: "92%", range: "30 km", price: "$5/分", dist: "30 公尺" },
+      { name: "台北車站 (東三門)", area: "站前商圈", vehicle: "E-Scooter #318", battery: "85%", range: "26 km", price: "$5/分", dist: "120 公尺" },
+      { name: "圖書館後方站", area: "校園北區", vehicle: "E-Scooter #105", battery: "45%", range: "14 km", price: "$4/分", dist: "150 公尺" },
+      { name: "高華樓站 (校區中心)", area: "主校區", vehicle: "E-Scooter #809", battery: "88%", range: "28 km", price: "$5/分", dist: "80 公尺" },
+      { name: "工程館 A 區", area: "理工園區", vehicle: "E-Scooter #412", battery: "95%", range: "32 km", price: "$5/分", dist: "210 公尺" }
+    ];
+
+    function handleSearchInput(query) {
+      const dropdown = document.getElementById('search-dropdown');
+      const val = query.trim().toLowerCase();
+
+      if (!val) {
+        dropdown.classList.add('hidden');
+        return;
+      }
+
+      const matches = presetLocations.filter(loc => loc.name.toLowerCase().includes(val) || loc.area.toLowerCase().includes(val));
+      
+      if (matches.length > 0) {
+        dropdown.innerHTML = matches.map(loc => `
+          <div onclick="selectLocation('${loc.name}', '${loc.vehicle}', '${loc.battery}', '${loc.range}', '${loc.price}', '${loc.dist}')" class="p-2.5 rounded-xl hover:bg-slate-800/80 cursor-pointer flex items-center justify-between text-xs transition">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-location-dot text-brand"></i>
+              <div>
+                <span class="font-bold text-white block">${loc.name}</span>
+                <span class="text-[10px] text-slate-400">${loc.area}</span>
+              </div>
+            </div>
+            <span class="text-brand font-bold text-[10px] bg-brand/10 border border-brand/30 px-2 py-0.5 rounded-full">可借 ${loc.vehicle}</span>
+          </div>
+        `).join('');
+        dropdown.classList.remove('hidden');
+      } else {
+        dropdown.innerHTML = `
+          <div onclick="executeSearch('${query}')" class="p-2.5 text-xs text-slate-400 text-center hover:bg-slate-800 rounded-xl cursor-pointer">
+            搜尋「<span class="text-white font-bold">${query}</span>」附近租賃點...
+          </div>
+        `;
+        dropdown.classList.remove('hidden');
+      }
+    }
+
+    function selectLocation(name, vehicle, battery, range, price, dist) {
+      document.getElementById('search-input').value = name;
+      document.getElementById('search-dropdown').classList.add('hidden');
+      
+      // Select vehicle info
+      selectVehicle(vehicle, battery, range, price, `${name} (約 ${dist})`);
+
+      // Toast notification
+      showToast(`已成功定位至：${name}`);
+    }
+
+    function executeSearch(query) {
+      if (!query.trim()) return;
+      document.getElementById('search-dropdown').classList.add('hidden');
+      selectVehicle(`E-Scooter #${Math.floor(Math.random()*800 + 100)}`, "90%", "29 km", "$5/分", `${query} 站點`);
+      showToast(`已重新定位至：${query}`);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('location-toast');
+      document.getElementById('toast-text').innerHTML = `<i class="fa-solid fa-location-crosshairs"></i> ${msg}`;
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
